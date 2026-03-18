@@ -107,6 +107,9 @@ class AutoEncoder(nn.Module):
             raise NotImplementedError(f'global pool {self.global_pool} not implemented')
         
         return x, position_ids
+
+
+        
     
     def decode(self,
         encoding: torch.Tensor,
@@ -126,6 +129,7 @@ class AutoEncoder(nn.Module):
     
     def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         encoding, position_ids = self.encode(input_ids)
+        position_ids = torch.arange(0, input_ids.shape[1])  # temp fix
         token_logits = self.decode(encoding, position_ids)
         return token_logits
 

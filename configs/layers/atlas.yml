@@ -1,0 +1,15 @@
+dim: 128
+expand_k: 1
+expand_v: 1
+num_heads: 4
+feature_map: identity
+tie_feature_map_qk: false
+norm_q: false
+norm_k: false
+dim_inner: 256
+chunk_size: 256
+use_weight_decay: true
+num_backprop_steps: 1
+base_lr: 0.001
+base_weight_decay: 0.9
+

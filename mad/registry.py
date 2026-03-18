@@ -4,7 +4,9 @@ from mad.data.instances import (
     generate_fuzzy_in_context_recall_instance,
     generate_memorization_instance,
     generate_compression_instance,
-    generate_selective_copying_instance
+    generate_selective_copying_instance,
+    generate_sniah_instance,
+    generate_addition
 )
 from mad.model import layers
 from mad import model
@@ -41,6 +43,17 @@ task_registry = {
         'cfg': 'configs/tasks/selective-copying.yml',
         'shorthand': 'SC'
     },
+    'sniah': {
+        'instance_fn': generate_sniah_instance,
+        'cfg': 'configs/tasks/sniah.yml',
+        'shorthand': 'NIAH'
+    },
+    'add': {
+        'instance_fn': generate_addition,
+        'cfg': 'configs/tasks/add.yml',
+        'shorthand': 'ADD'
+    },
+    
 }
 
 
@@ -141,6 +154,51 @@ layer_registry = {
         'module': layers.channel_mixer_rwkv6_wrapped,
         'cfg': 'configs/layers/rwkv6-channel-mixer.yml',
         'shorthand': 'R6c'
+    },
+    'deltanet': {
+        'module': layers.DeltaNet,
+        'cfg': 'configs/layers/deltanet.yml',
+        'shorthand': 'D'
+    },
+    'monarch-attention': {
+        'module': layers.MonarchAttention,
+        'cfg': 'configs/layers/monarch-attention.yml',
+        'shorthand': 'Monarch'
+    },
+    'gaussian-attention': {
+        'module': layers.GaussianAttention,
+        'cfg': 'configs/layers/gaussian-attention.yml',
+        'shorthand': 'GA'
+    },
+    'mlp-attention': {
+        'module': layers.MLPAttention,
+        'cfg': 'configs/layers/mlp-attention.yml',
+        'shorthand': 'MLPA'
+    },
+    'simple-mlp-attention': {
+        'module': layers.SimpleMLPAttention,
+        'cfg': 'configs/layers/simple-mlp-attention.yml',
+        'shorthand': 'sMLPA'
+    },
+    'semilinear': {
+        'module': layers.Semilinear,
+        'cfg': 'configs/layers/semilinear.yml',
+        'shorthand': 'SL'
+    },
+    'atlas': {
+        'module': layers.Atlas,
+        'cfg': 'configs/layers/atlas.yml',
+        'shorthand': 'Atlas'
+    },
+    'rl': {
+        'module': layers.RL,
+        'cfg': 'configs/layers/rl.yml',
+        'shorthand': 'rl'
+    },
+    'add-attention': {
+        'module': layers.AddAttention,
+        'cfg': 'configs/layers/add-attention.yml',
+        'shorthand': 'AA'
     }
 }
 

@@ -1,0 +1,8 @@
+dim: 128
+expand_k: 1
+expand_v: 1
+num_heads: 1
+feature_map: silu
+tie_feature_map_qk: false
+norm_q: false
+norm_k: false

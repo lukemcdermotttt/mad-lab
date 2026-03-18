@@ -1,0 +1,5 @@
+dim: 128
+expand_k: 1
+expand_v: 1
+num_heads: 8
+loss: "deltanet"

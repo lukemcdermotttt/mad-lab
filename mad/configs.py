@@ -1,3 +1,4 @@
+
 import os
 import yaml
 import typing as tp
@@ -42,10 +43,11 @@ class MADConfig(BaseConfig):
     multi_query: bool = True
     num_train_examples: int = 12_800
     num_test_examples: int = 1_280
+    num_facts: int = 4
 
     # data settings:
-    data_path: str = './data'
-    num_data_workers: int = 0
+    data_path: str = './benchmark/data'
+    num_data_workers: int = 31
     persistent_data_workers: bool = True
 
     # training settings:
@@ -94,6 +96,7 @@ class MADConfig(BaseConfig):
             )
         else:
             kv_map = None
+        
         return dict(
             vocab_size=self.vocab_size,
             seq_len=self.seq_len,
@@ -101,10 +104,12 @@ class MADConfig(BaseConfig):
             v_motif_size=self.v_motif_size,
             frac_noise=self.frac_noise,
             noise_vocab_size=self.noise_vocab_size,
-            num_tokens_to_copy=self.num_tokens_to_copy,
+            num_tokens_to_copy=self.num_tokens_to_copy, 
+            num_facts=self.num_facts,
             rng=np.random.default_rng(self.seed),
             multi_query=self.multi_query,
-            kv_map=kv_map
+            kv_map=kv_map,
+            
         )
 
     @property
@@ -113,6 +118,7 @@ class MADConfig(BaseConfig):
 
     @property
     def train_dataset_path(self) -> str:
+        print(self.dataset_path)
         return os.path.join(self.dataset_path, 'train')
 
     @property
@@ -157,8 +163,8 @@ class MADModelConfig(BaseConfig):
 def make_benchmark_mad_configs(**kwargs):
     """Returns a list containing all MADConfigs of the MAD benchmark."""
 
-    lrs = [1e-4, 5e-4, 1e-3]
-    wds = [0.0, 0.1]
+    lrs = [1e-3] #[1e-4, 5e-4, 1e-3]
+    wds = [0.0] #[0.0, 0.1]
     mad_configs = []
     for task in task_registry.keys():
         task_cfg = load_yml(task_registry[task]['cfg'])

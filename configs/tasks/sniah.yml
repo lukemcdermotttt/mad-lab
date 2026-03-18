@@ -1,0 +1,9 @@
+baseline:
+  vocab_size: 128
+  seq_len: 512
+  num_facts: 4
+  num_train_examples: 3200
+
+changes:
+  seq_len: [1024, 2048, 4096]
+  num_facts: [16, 32]

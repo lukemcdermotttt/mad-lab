@@ -44,6 +44,7 @@ def get_args():
     # misc:
     parser.add_argument('--ray-tmp-path', type=str, default='./tmp/ray/', help='tmp path to be used by ray')
 
+    parser.add_argument('--tasks', nargs='+', default=None, help='subset of MAD tasks to run (e.g. fuzzy-in-context-recall)')
     return vars(parser.parse_args())
 
 
@@ -69,7 +70,8 @@ def benchmark(
     save_checkpoints: bool = True,
     precision: str = 'bf16',
     persistent_workers: bool = True,
-    ray_tmp_path: str = '/tmp/ray'
+    ray_tmp_path: str = '/tmp/ray',
+    tasks=None,
 ):
     """
     Benchmark a model on MAD.
@@ -97,8 +99,11 @@ def benchmark(
     mad_configs = make_benchmark_mad_configs(
         data_path=data_path,
         precision=precision,
-        persistent_workers=persistent_workers
+        persistent_workers=persistent_workers,
     )
+    print(mad_configs)
+    if tasks is not None:
+        mad_configs = [c for c in mad_configs if c.task in set(tasks)]
     check_benchmark_data_present(mad_configs)
 
     def setup_model_and_train(mad_config):
@@ -146,7 +151,8 @@ def benchmark(
 
     mad_scores = compute_model_mad_scores(
         model_id=model_id,
-        logs_path=logs_path
+        logs_path=logs_path,
+        task=tasks[0] if tasks is not None and len(tasks) == 1 else 'all',
     )
     print('\n----')
     print('MAD scores for each synthetic task:')
@@ -233,5 +239,6 @@ if __name__ == '__main__':
         log_to_wandb=args['log_to_wandb'],
         wandb_project=args['wandb_project'],
         save_checkpoints=args['save_checkpoints'],
-        ray_tmp_path=args['ray_tmp_path']
+        ray_tmp_path=args['ray_tmp_path'],
+        tasks=args['tasks'],
     )

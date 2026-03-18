@@ -239,8 +239,9 @@ class MemoryDataset(torch.utils.data.Dataset):
 
         # sequential data generation:
         else:
+            print('Sequential Data Generation, Use numworkers > 1 or install ray')
             iterator = tqdm(range(num_examples)) if self.verbose else range(num_examples)
-            instances = [self.instance_fn(**self.instance_fn_kwargs) for _ in iterator]
+            instances = [self.instance_fn(**self.instance_fn_kwargs, iterator_idx=i) for i in iterator]
 
         if len(instances[-1])==2:
             self.inputs, self.targets = [np.stack(i) for i in zip(*instances)]

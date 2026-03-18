@@ -32,6 +32,7 @@ def get_args():
     parser.add_argument('--k-motif-size', type=int, default=1, help='number of adjacent tokens that together form a key in fuzzy in-context recall')
     parser.add_argument('--v-motif-size', type=int, default=1, help='number of adjacent tokens that together form a value in fuzzy in-context recall')
     parser.add_argument('--multi-query', action=argparse.BooleanOptionalAction, default=True, help='if True, multi-query variant of in-context recall tasks is used')
+
     
     # model settings:
     parser.add_argument('--layers', nargs='+', default=['mh-attention', 'swiglu', 'mh-attention', 'swiglu'], help='layers of model')
@@ -64,7 +65,7 @@ def get_args():
     parser.add_argument('--save-checkpoints', action=argparse.BooleanOptionalAction, default=True, help='if True, final and best model checkpoints are saved in the log directory')
 
     # data:
-    parser.add_argument('--data-path', type=str, default='./data', help='path where generated data are stored')
+    parser.add_argument('--data-path', type=str, default='./benchmark/data', help='path where generated data are stored')
     parser.add_argument('--num-data-workers', type=int, default=0, help='number of workers for data generation and data loading')
     parser.add_argument('--persistent-data-workers', action=argparse.BooleanOptionalAction, default=True, help='if True, data workers are kept alive between epochs')
 

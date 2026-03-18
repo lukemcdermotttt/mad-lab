@@ -1,0 +1,200 @@
+Ideas:
+maybe change update frequency / chunksize for the first & second layers (kinda like hope/nested learning.)
+add 
+
+python -m train --task sniah --layers  simple-mlp-attention swiglu simple-mlp-attention swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  mlp-attention swiglu mlp-attention swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  semilinear swiglu semilinear swiglu --vocab-size 32 --seq-len 1024
+python -m train --task sniah --layers  mh-attention swiglu mh-attention swiglu --vocab-size 32 --seq-len 1024
+python -m train --task fuzzy-in-context-recall --vocab-size 64 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers simple-mlp-attention swiglu simple-mlp-attention swiglu 
+
+
+Update rule for Simple MLP Attention:
+
+fast_kk W_in_grad = m(W_in, K, K) ->  fuzzy 16,1024,12800:
+    dim_inner=chunk_size=256: 42.6% stopped at epoch 123
+    dim_inner=chunk_size=128: 33.4% it stopped going up after 55, but i stopped at 112.
+fast_vk W_in_grad = m(W_out, V, K) -> fuzzy 16,1024,12800: -> Not as good! took a while to train.
+    dim_inner=chunk_size=256: []
+    dim_inner=chunk_size=128: 27.5% by epoch 85. stopped then
+Baseline MLP Attention got 47% at 256
+
+
+
+FUZZY ICR
+
+For our big MLP benchmark, as you scan across vocab size we get
+Accuracy [91.8, 91.8, 93, 02] at Vocab sizes [16,32,64,128], so 128 vocab size is the only one that matters. 
+
+As you scan across training examples
+Accuracy [8, 10, 50, 70, 91.8] at Examples [800, 1600, 3200, 6400, 12800], so training efficient methods matter a LOT. 
+
+Accuracy [91.8,71,45,47] at Seq Len [128,256,512,1024], so updating over time matters a bit amount.
+
+Since the Vocab Size and Training Example scan use 128 seq len, our MLP is not updating on anything besides the 512,1024 seq len which gets accuracies=[45, 47]
+
+python -m benchmark --task fuzzy-in-context-recall --layers mlp-attention mlp-attention mlp-attention mlp-attention 
+python -m train --task fuzzy-in-context-recall --vocab-size 64 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mh-attention swiglu mh-attention swiglu 
+python -m train --task fuzzy-in-context-recall --vocab-size 128 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mlp-attention swiglu mlp-attention swiglu 
+
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers simple-mlp-attention swiglu simple-mlp-attention swiglu  
+
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers semilinear swiglu semilinear swiglu 
+
+I think this wants smaller dim inner and have a short conv. aye, short conv matters the most.
+
+Rope seems to slow down training & hurt this?
+
+I think depth is the answerr for fuzzy ICR.
+
+Running a baby benchmark! no LR sweep
+python -m benchmark --tasks fuzzy-in-context-recall  --layers mlp-attention swiglu mlp-attention swiglu
+
+Currently using this:
+
+dim: 128
+expand_k: 1
+expand_v: 1
+num_heads: 4
+feature_map: identity
+tie_feature_map_qk: false
+norm_q: false
+norm_k: false
+dim_inner: 256
+chunk_size: 256
+use_weight_decay: true
+num_backprop_steps: 1
+base_lr: 0.001
+base_weight_decay: 0.9
+use_self_distillation: false
+use_trainable_init: true
+use_lola: false
+fusion: dynamic
+use_short_conv: true
+short_conv_use_norm: false
+use_rope: false
+use_momentum: true
+use_muon: true
+
+
+IN-CONTEXT RECALL 
+python -m train --task in-context-recall --vocab-size 128 --seq-len 1024 --num-train-examples 800 --k-motif-size 1 --v-motif-size 1 --layers mlp-attention swiglu mlp-attention swiglu
+-> with motif size of 1 this is solvable, 95-100% i think.
+
+python -m train --task in-context-recall --vocab-size 128 --seq-len 1024 --num-train-examples 800 --k-motif-size 2 --v-motif-size 2 --layers mlp-attention swiglu mlp-attention swiglu
+-> only 50%?? cmon. I think momentum helps
+okay, I deleted the data because it looked odd, now I am retraining with muon.
+IT WAS THE DATA. Gets 93% with muon.
+
+Going back to 256 dim inner. Need to have few heads sicne the gradient is too big per head. Also muon is expensive with high dims.
+Okay, 256 dim inner wiht momenutm and muon can solve this.
+
+
+
+
+MEMORIZATION
+
+Hardest Memorization Task:
+python -m train --task memorization --vocab-size 8192 --seq-len 32 --num-train-examples 256 --layers mlp-attention swiglu mlp-attention swiglu 
+python -m benchmark --tasks memorization  --layers simple-mlp-attention simple-mlp-attention  simple-mlp-attention simple-mlp-attention 
+python -m benchmark --layers simple-mlp-attention simple-mlp-attention  simple-mlp-attention simple-mlp-attention 
+
+
+mlp attention got like 60% memorization
+mh-attention gets 69% memorization
+
+I think memorization likes rope, wants a large inner dim and low amount of heads with trainable init. basically make it the biggest mlp you cna. Rope is good too for the long sequences.
+We also need high learning rate.
+
+Redownloaded the memorization data!
+dim: 128
+expand_k: 1
+expand_v: 1
+num_heads: 4
+feature_map: identity
+tie_feature_map_qk: false
+norm_q: false
+norm_k: false
+dim_inner: 128
+chunk_size: 256
+use_weight_decay: true
+num_backprop_steps: 1
+base_lr: 0.001
+base_weight_decay: 0.9
+use_self_distillation: false
+use_trainable_init: true
+use_lola: false
+fusion: dynamic
+use_short_conv: true
+short_conv_use_norm: false
+use_rope: true
+Gets 80.0% accuracy on benchmark
+
+For the hardest task, we want ~50% to match atlas.
+num_heads = 4, dim_inner 128-> 8% 
+num_heads = 4, dim_inner 256-> 11% 
+num_heads = 4, dim_inner 512-> 25%
+num_heads = 2, dim_inner 512-> 27%
+num_heads = 2, dim_inner 512, no conv -> 43% 
+num_heads = 4, dim_inner 512, no conv -> % 
+
+
+ALL 4 MLP ATTENTION num_heads = 4, dim_inner 768, no conv, 51.4%
+ALL 4 MLP ATTENTION num_heads = 4, dim_inner 768, yes conv, 38%
+ALL 4 MLP ATTENTION num_heads = 8, dim_inner 512, no conv, 50%
+ALL 4 MLP ATTENTION num_heads = 16, dim_inner 512, no conv, 45.4%
+ONLY 2 MLP-ATTENTION, num_heads = 16, dim_inner 512, no conv, 45.5%
+ONLY 1 MLP-ATTENTION, num_heads = 16, dim_inner 512, no conv, 35%
+ONLY 1 MLP-ATTENTION, num_heads = 16, dim_inner 512, yes conv, 26.7%
+
+
+ONLY 2 MLP-ATTENTION, num_heads = 8, dim_inner 512, no conv, 51.1%
+-> 88.76 on mini-benchmark (no lr sweep)!
+
+
+
+
+COMPRESSION
+python -m train --task compression --layers mlp-attention swiglu mlp-attention swiglu --vocab-size 32 --seq-len 32 --num-train-examples 6400
+
+all at 3200 train examples (vocab, seqlen)
+64,64 -> 9% for attention
+32,64 -> 14% for attn
+64,32 -> 12% for attention
+32,32 -> 18%
+
+(32,32) @ 6400 -> 23% (same for mlp)
+
+More mlp-attention layers is better i think. like replcaing MLPs. similarly to the memorization.
+
+
+Similar to memorization, we don't make use of the MLP updates here... so this only depends on trainability of dim-inner, rope, or conv1d
+muon momentum lola dont matter.
+
+Big dim inner may take slower to converge? still gets 23ish, but it keeps going later like 26... similarly with 3 mlp-attention's + swiglu like 31.
+
+8 heads instead of 4 (with larger, 256 inner dim) gives us 28
+
+
+
+SELECTIVE COPYING
+
+python -m train --task selective-copying --num-tokens-to-copy 96 --seq-len 1024 --vocab-size 16 --num-train-examples 1600 --layers mlp-attention swiglu mlp-attention swiglu 
+
+
+
+Guide:
+Memorization (Tells us how big the MLP needs to be)
+    With chunk_size > sequence length, no ICL happens to the MLP, so short_conv, SWA, and the trainable init are all the learns.
+    RoPE is crucial to prevent overfitting to the order of the sequence for long sequences. Conv hurts performance. Make the MLP
+    as big as possible. I think lower heads is good.
+Compression
+    Big Dim trains slower but better over time. Follows a same trend as memorization (big mlps), stacking mlp-attentions is good but slow. 
+    Conv+Rope is good. Conv no Rope is fine. Rope no Conv is fine.
+ICR
+    I think muon/momentum stabilizes the MLP updates when dim_inner is too big
+Fuzzy ICR 
+    Depth seems to matter. Conv helps a lot as a trick for a deeper model.
+Selective Copying
+    Requires rope, otherwise I think its an easy one? not sure how close to 99% though we will get.
+    

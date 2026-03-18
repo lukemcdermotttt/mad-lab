@@ -50,6 +50,17 @@ class LanguageModel(nn.Module):
         
         self.unembed = nn.Sequential(norm(layer_cfg['dim']), nn.Linear(dim, vocab_size))
         self.apply(self._init_weights)
+
+        seen = set()
+        total = 0
+        for n,p in self.named_parameters():
+            pid = id(p)
+            if pid not in seen:
+                seen.add(pid)
+                total += p.numel()
+            print(n, p.numel())
+        print('MODEL USING ', total, ' TOTAL PARAMETERS!!!!')
+
         
     def embed(self,
         inputs_ids: torch.Tensor,

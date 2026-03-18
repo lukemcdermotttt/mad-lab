@@ -1,0 +1,6 @@
+Collecting flash-attn
+  Using cached flash_attn-2.8.3.tar.gz (8.4 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'error'

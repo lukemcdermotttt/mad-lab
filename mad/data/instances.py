@@ -598,3 +598,85 @@ def generate_selective_copying_instance(
         target_ignore_idx=target_ignore_idx,
         selective=True
     )
+
+def generate_sniah_instance(
+    vocab_size: int = 16,
+    seq_len: int = 128,
+    rng: np.random.Generator = None,
+    target_ignore_idx: int = -100,
+    iterator_idx = None,
+    is_training: bool = True,
+    placement_start = .6,
+    placement_end = 1.,
+    *args, **kwargs
+):
+    rng=None #assert rng is None, need this for training set.
+    num_facts = (vocab_size - 2) // 2 #A fact represents a (k,v) pair.
+    q_token = vocab_size - 1
+    pad_token = vocab_size - 2
+    num_pad_tokens = seq_len - 2*num_facts
+    
+    if is_training: 
+        #We use iterator idx to group multiple sequences together in a batch. This allows the model to see the same haystack but different query in a batch.
+        assert iterator_idx is not None, "Currently only supporting sequential data generation in dataset.py"
+        rng = np.random.default_rng(seed=iterator_idx//num_facts)
+    else: 
+        assert placement_start < placement_end
+        rng = np.random.default_rng()
+   
+    
+    
+    
+
+    kv_tokens = rng.choice(np.arange(vocab_size - 2), size=num_facts*2, replace=False) #pick what tokens can be used for keys/values
+    rng.shuffle(kv_tokens)
+    
+    pad = np.ones(num_pad_tokens // 2)*pad_token
+    keys = np.concatenate((kv_tokens[:num_facts], pad), axis=0)
+    values = np.concatenate((kv_tokens[num_facts:], pad), axis=0)
+    
+    k_star = keys[iterator_idx%num_facts] #Needle!
+    v_star = values[iterator_idx%num_facts]
+
+    if not is_training:
+        keys[iterator_idx%num_facts] = pad_token
+        values[iterator_idx%num_facts] = pad_token
+        needle_index = int((np.random.rand()*(placement_end - placement_start)+placement_start)*len(keys))
+
+
+    kv_pairs = list(zip(keys, values))
+    rng.shuffle(kv_pairs)
+        
+    haystack = []
+    for i, (k, v) in enumerate(kv_pairs):
+        if not is_training and i==needle_index:
+            haystack += [k_star, v_star]
+        else:
+            haystack += [k, v]
+
+    # -------- append query --------
+    inputs = haystack + [q_token, k_star]
+    targets = [target_ignore_idx]*(len(inputs)-1) + [v_star]
+
+    inputs = np.array(inputs).astype(int)
+    targets = np.array(targets).astype(int)
+
+    return inputs, targets
+
+
+def generate_addition(
+    num_digits: int = 10,
+    rng: np.random.Generator = None,
+    target_ignore_idx: int = -100,
+    vocab_size = 16,
+    *args, **kwargs
+):
+    
+    x = np.random.randint(0, 10, size=2*num_digits)           # 20 digits
+    a = int(''.join(map(str, x[:num_digits])))
+    b = int(''.join(map(str, x[num_digits:])))
+    y = np.array(list(map(int, str(a + b).zfill(num_digits+1))))  # 11 digits
+    pad = np.array([target_ignore_idx]*20)
+    inputs = np.concatenate([x,[vocab_size-1],y])
+    targets = np.concatenate([pad,y,[target_ignore_idx]])
+    return inputs, targets
