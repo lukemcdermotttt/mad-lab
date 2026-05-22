@@ -19,3 +19,8 @@ from mad.model.layers.semilinear import Semilinear
 from mad.model.layers.atlas import Atlas
 from mad.model.layers.rl import RL
 from mad.model.layers.add_attention import AddAttention
+from mad.model.layers.attention_plus import AttentionPlus
+from mad.model.layers.parametric_attention import ParametricAttention
+from mad.model.layers.raven import RavenAttention
+from mad.model.layers.mako import Mako
+from mad.model.layers.gated_deltanet import GatedDeltaNetAttention

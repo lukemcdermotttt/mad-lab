@@ -76,12 +76,6 @@ class Atlas(nn.Module):
             #W_init q_t + (sum vk) q_t
             #o[:, i:i+self.chunk_size] = 
 
-
-
-
-
-
-
             k_h = F.softmax(torch.einsum('blhd,bDhd->blhD', k[:, i:i+self.chunk_size], W_in), dim=-1) * lr[:, i:i+self.chunk_size, :, 1:]
             q_h = F.softmax(torch.einsum('blhd,bDhd->blhD', q[:, i:i+self.chunk_size], W_in), dim=-1)
             qk = torch.einsum('bqhD,bkhD->bhqk', q_h, k_h).masked_fill_(torch.triu(torch.ones(1,1,q_h.size(1), q_h.size(1), dtype=bool, device=q.device), diagonal=1), 0)

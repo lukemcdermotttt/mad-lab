@@ -5,8 +5,7 @@ from mad.data.instances import (
     generate_memorization_instance,
     generate_compression_instance,
     generate_selective_copying_instance,
-    generate_sniah_instance,
-    generate_addition
+    generate_sniah_instance
 )
 from mad.model import layers
 from mad import model
@@ -47,13 +46,7 @@ task_registry = {
         'instance_fn': generate_sniah_instance,
         'cfg': 'configs/tasks/sniah.yml',
         'shorthand': 'NIAH'
-    },
-    'add': {
-        'instance_fn': generate_addition,
-        'cfg': 'configs/tasks/add.yml',
-        'shorthand': 'ADD'
-    },
-    
+    } 
 }
 
 
@@ -199,7 +192,32 @@ layer_registry = {
         'module': layers.AddAttention,
         'cfg': 'configs/layers/add-attention.yml',
         'shorthand': 'AA'
-    }
+    },
+    'attention-plus': {
+        'module': layers.AttentionPlus,
+        'cfg': 'configs/layers/attention-plus.yml',
+        'shorthand': 'Aplus'
+    },
+    'parametric-attention': {
+        'module': layers.ParametricAttention,
+        'cfg': 'configs/layers/parametric-attention.yml',
+        'shorthand': 'PA'
+    },
+    'raven': {
+        'module': layers.RavenAttention,
+        'cfg': 'configs/layers/raven.yml',
+        'shorthand': 'RA'
+    },
+    'mako': {
+        'module': layers.Mako,
+        'cfg': 'configs/layers/mako.yml',
+        'shorthand': 'MK'
+    },
+    'gated-deltanet': {
+        'module': layers.GatedDeltaNetAttention,
+        'cfg': 'configs/layers/gated-deltanet.yml',
+        'shorthand': 'GDN'
+    },
 }
 
 

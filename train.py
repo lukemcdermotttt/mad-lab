@@ -229,6 +229,8 @@ def train(
 
     trainer.fit(model_wrapped, train_dl, test_dl)
 
+
+    
     # Evaluate Final Performance.
 
     results_train = trainer.validate(dataloaders=train_dl)[0]
@@ -275,6 +277,10 @@ if __name__ == '__main__':
         mad_config=mad_config,
         model_id=model_id
     )
+
+    
+    
+
     train(
         model=model,
         mad_config=mad_config,
@@ -284,3 +290,4 @@ if __name__ == '__main__':
         wandb_project=args['wandb_project'],
         save_checkpoints=args['save_checkpoints']
     )
+

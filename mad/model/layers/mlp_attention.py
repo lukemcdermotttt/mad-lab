@@ -313,6 +313,7 @@ class MLPAttention(nn.Module):
                 if self.use_weight_decay:
                     assert False, "Forgot to take mean over lr / beta in the chunk for the Gradient step"
                     W_in = (beta_in[:,i:i+1,:,None] * W_in) - lr_in[:,i:i+1,:,None] * Grad_in
+                    
                     W_out = (beta_out[:,i:i+1,:,None] * W_out) - lr_out[:,i:i+1,:,None] * Grad_out
                 else:
                     assert False, "Forgot to take mean over lr / beta in the chunk for the Gradient step"

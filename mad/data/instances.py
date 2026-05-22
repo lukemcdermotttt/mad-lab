@@ -599,6 +599,20 @@ def generate_selective_copying_instance(
         selective=True
     )
 
+
+"""
+This generates a single-needle-in-a-haystack dataset.
+
+Test Example: [ K, 3, A, 4, B, 5, Q, A] -> 4, where (K,3) represents the first "fact".
+We can also control where the needle is placed in the haystack for testing.
+
+For training, we can be more  efficient with how we generate the pretraining data. 
+We use the same haystack, but query it differently to be more sample efficient. 
+From above, num_facts = 3, so we generate:
+    [ K, 3, A, 4, B, 5, Q, K] -> 3
+    [ K, 3, A, 4, B, 5, Q, A] -> 4
+    [ K, 3, A, 4, B, 5, Q, B] -> 5
+"""
 def generate_sniah_instance(
     vocab_size: int = 16,
     seq_len: int = 128,
@@ -606,28 +620,28 @@ def generate_sniah_instance(
     target_ignore_idx: int = -100,
     iterator_idx = None,
     is_training: bool = True,
-    placement_start = .6,
-    placement_end = 1.,
+    placement_start = 0.0,
+    placement_end = 1.0,
     *args, **kwargs
 ):
     rng=None #assert rng is None, need this for training set.
     num_facts = (vocab_size - 2) // 2 #A fact represents a (k,v) pair.
     q_token = vocab_size - 1
     pad_token = vocab_size - 2
-    num_pad_tokens = seq_len - 2*num_facts
     
+
     if is_training: 
         #We use iterator idx to group multiple sequences together in a batch. This allows the model to see the same haystack but different query in a batch.
         assert iterator_idx is not None, "Currently only supporting sequential data generation in dataset.py"
         rng = np.random.default_rng(seed=iterator_idx//num_facts)
+        #seq_len = 1024
+
     else: 
         assert placement_start < placement_end
         rng = np.random.default_rng()
-   
-    
-    
-    
 
+    num_pad_tokens = seq_len - 2*num_facts
+    
     kv_tokens = rng.choice(np.arange(vocab_size - 2), size=num_facts*2, replace=False) #pick what tokens can be used for keys/values
     rng.shuffle(kv_tokens)
     
@@ -661,22 +675,4 @@ def generate_sniah_instance(
     inputs = np.array(inputs).astype(int)
     targets = np.array(targets).astype(int)
 
-    return inputs, targets
-
-
-def generate_addition(
-    num_digits: int = 10,
-    rng: np.random.Generator = None,
-    target_ignore_idx: int = -100,
-    vocab_size = 16,
-    *args, **kwargs
-):
-    
-    x = np.random.randint(0, 10, size=2*num_digits)           # 20 digits
-    a = int(''.join(map(str, x[:num_digits])))
-    b = int(''.join(map(str, x[num_digits:])))
-    y = np.array(list(map(int, str(a + b).zfill(num_digits+1))))  # 11 digits
-    pad = np.array([target_ignore_idx]*20)
-    inputs = np.concatenate([x,[vocab_size-1],y])
-    targets = np.concatenate([pad,y,[target_ignore_idx]])
     return inputs, targets

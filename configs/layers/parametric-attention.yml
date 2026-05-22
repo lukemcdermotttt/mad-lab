@@ -1,0 +1,7 @@
+d: 128
+expand_k: 1
+expand_v: 1
+h: 4
+d_in: 256
+b_chunk: 256
+lr: 1.0e-3

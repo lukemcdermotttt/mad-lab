@@ -1,0 +1,4 @@
+dim: 128
+num_heads: 4
+expand_k: 1
+expand_v: 2

@@ -1,13 +1,31 @@
+SNIAH NOTES:
+python -m train --task sniah --layers  simple-mlp-attention swiglu simple-mlp-attention swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  attention-plus swiglu attention-plus swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  raven swiglu raven swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  mako swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  gated-deltanet swiglu gated-deltanet swiglu --vocab-size 16 --seq-len 4096
+ 
+simple-mlp-attention --vocab-size 16 --seq-len 1024: 
+mh-attention
+attention-plus
+
+
+
+
+
+
+
 Ideas:
 maybe change update frequency / chunksize for the first & second layers (kinda like hope/nested learning.)
 add 
 
 python -m train --task sniah --layers  simple-mlp-attention swiglu simple-mlp-attention swiglu --vocab-size 16 --seq-len 1024
+python -m train --task sniah --layers  attention-plus swiglu attention-plus swiglu --vocab-size 16 --seq-len 512
 python -m train --task sniah --layers  mlp-attention swiglu mlp-attention swiglu --vocab-size 16 --seq-len 1024
 python -m train --task sniah --layers  semilinear swiglu semilinear swiglu --vocab-size 32 --seq-len 1024
 python -m train --task sniah --layers  mh-attention swiglu mh-attention swiglu --vocab-size 32 --seq-len 1024
 python -m train --task fuzzy-in-context-recall --vocab-size 64 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers simple-mlp-attention swiglu simple-mlp-attention swiglu 
-
+python -m train --task fuzzy-in-context-recall --vocab-size 64 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mako swiglu mako swiglu 
 
 Update rule for Simple MLP Attention:
 
@@ -21,6 +39,15 @@ Baseline MLP Attention got 47% at 256
 
 
 
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers simple-mlp-attention swiglu simple-mlp-attention swiglu
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers raven swiglu raven swiglu 
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers gated-deltanet swiglu gated-deltanet swiglu
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mako swiglu mako swiglu
+
+
+python -m train --task fuzzy-in-context-recall --vocab-size 16 --seq-len 1024 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers parametric-attention swiglu parametric-attention swiglu
+
+
 FUZZY ICR
 
 For our big MLP benchmark, as you scan across vocab size we get
@@ -32,7 +59,7 @@ Accuracy [8, 10, 50, 70, 91.8] at Examples [800, 1600, 3200, 6400, 12800], so tr
 Accuracy [91.8,71,45,47] at Seq Len [128,256,512,1024], so updating over time matters a bit amount.
 
 Since the Vocab Size and Training Example scan use 128 seq len, our MLP is not updating on anything besides the 512,1024 seq len which gets accuracies=[45, 47]
-
+python -m benchmark --task fuzzy-in-context-recall --layers mako swiglu mako swiglu
 python -m benchmark --task fuzzy-in-context-recall --layers mlp-attention mlp-attention mlp-attention mlp-attention 
 python -m train --task fuzzy-in-context-recall --vocab-size 64 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mh-attention swiglu mh-attention swiglu 
 python -m train --task fuzzy-in-context-recall --vocab-size 128 --seq-len 128 --num-train-examples 12800 --k-motif-size 3 --v-motif-size 3 --layers mlp-attention swiglu mlp-attention swiglu 
@@ -95,7 +122,7 @@ Okay, 256 dim inner wiht momenutm and muon can solve this.
 MEMORIZATION
 
 Hardest Memorization Task:
-python -m train --task memorization --vocab-size 8192 --seq-len 32 --num-train-examples 256 --layers mlp-attention swiglu mlp-attention swiglu 
+python -m train --task memorization --vocab-size 8192 --seq-len 32 --num-train-examples 256 --layers mako swiglu mako swiglu 
 python -m benchmark --tasks memorization  --layers simple-mlp-attention simple-mlp-attention  simple-mlp-attention simple-mlp-attention 
 python -m benchmark --layers simple-mlp-attention simple-mlp-attention  simple-mlp-attention simple-mlp-attention 
 
@@ -155,7 +182,7 @@ ONLY 2 MLP-ATTENTION, num_heads = 8, dim_inner 512, no conv, 51.1%
 
 
 COMPRESSION
-python -m train --task compression --layers mlp-attention swiglu mlp-attention swiglu --vocab-size 32 --seq-len 32 --num-train-examples 6400
+python -m train --task compression --layers mako swiglu mako swiglu --vocab-size 32 --seq-len 32 --num-train-examples 3200
 
 all at 3200 train examples (vocab, seqlen)
 64,64 -> 9% for attention
@@ -179,7 +206,7 @@ Big dim inner may take slower to converge? still gets 23ish, but it keeps going 
 
 SELECTIVE COPYING
 
-python -m train --task selective-copying --num-tokens-to-copy 96 --seq-len 1024 --vocab-size 16 --num-train-examples 1600 --layers mlp-attention swiglu mlp-attention swiglu 
+python -m train --task selective-copying --num-tokens-to-copy 96 --seq-len 1024 --vocab-size 16 --num-train-examples 1600 --layers mako swiglu mako swiglu 
 
 
 

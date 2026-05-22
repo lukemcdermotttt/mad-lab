@@ -79,6 +79,7 @@ class LanguageModel(nn.Module):
         x = self.embed(inputs_ids)
         for layer in self.model:
             x = x + layer(x)
+
         return self.unembed(x)
 
     def _init_weights(self, m, initializer_range=0.02) -> None:
